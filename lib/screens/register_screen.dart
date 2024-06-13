@@ -1,4 +1,7 @@
+import 'package:client/components/custom_button.dart';
+import 'package:client/components/custom_input.dart';
 import 'package:client/providers/auth_provider.dart';
+import 'package:client/screens/otp_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -88,64 +91,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        TextField(
+        CustomInputField(
           controller: _fullnameController,
-          decoration: const InputDecoration(
-              labelText: 'Full Name', prefixIcon: Icon(Icons.person)),
+          labelText: 'Full Name',
         ),
-        TextField(
+        CustomInputField(
           controller: _emailController,
-          decoration: const InputDecoration(
-              labelText: 'Email', prefixIcon: Icon(Icons.email)),
+          labelText: 'Email',
         ),
-        TextField(
+        CustomInputField(
           controller: _phoneController,
-          decoration: const InputDecoration(
-              labelText: 'Phone', prefixIcon: Icon(Icons.phone)),
+          labelText: 'Phone',
         ),
-        TextField(
+        CustomInputField(
           controller: _passwordController,
-          decoration: const InputDecoration(
-              labelText: 'Password', prefixIcon: Icon(Icons.lock)),
+          labelText: 'Password',
           obscureText: true,
         ),
-        TextField(
-          controller: _password2Controller,
-          decoration: const InputDecoration(
-              labelText: 'Konfirmasi Password', prefixIcon: Icon(Icons.lock)),
-          obscureText: true,
-        ),
-        TextField(
+        CustomInputField(
           controller: _reffCodeController,
-          decoration: const InputDecoration(
-              labelText: 'Referral Code',
-              prefixIcon: Icon(Icons.connect_without_contact)),
+          labelText: 'Referral Code',
         ),
         const SizedBox(height: 20),
-        ElevatedButton.icon(
+        CustomButton(
+          text: 'Register',
           onPressed: () async {
-            final fullname = _fullnameController.text;
-            final email = _emailController.text;
-            final phone = _phoneController.text;
-            final password = _passwordController.text;
-            final reffCode = _reffCodeController.text;
+            final fullname = _fullnameController.text.trim();
+            final email = _emailController.text.trim();
+            final phone = _phoneController.text.trim();
+            final password = _passwordController.text.trim();
+            final reffCode = _reffCodeController.text.trim();
 
-            if (await Provider.of<AuthProvider>(context, listen: false)
-                .register(fullname, email, phone, password, reffCode)) {
-              Navigator.pushReplacementNamed(context, '/otp');
+            if (fullname.isEmpty ||
+                email.isEmpty ||
+                phone.isEmpty ||
+                password.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('All fields are required')),
+              );
+              return;
+            }
+
+            bool success =
+                await Provider.of<AuthProvider>(context, listen: false)
+                    .register(fullname, email, phone, password, reffCode);
+
+            if (success) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => OtpScreen(email: email)),
+              );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Register failed')),
+                const SnackBar(content: Text('Registration failed')),
               );
             }
           },
-          label: const Text('Register'),
-          icon: const Icon(Icons.app_registration),
         ),
-        const SizedBox(height: 10),
         TextButton(
           onPressed: () {
-            Navigator.pushReplacementNamed(context, '/login');
+            Navigator.pop(context);
           },
           child: const Text('Already have an account? Login'),
         ),
